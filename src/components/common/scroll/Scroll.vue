@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper" ref="wrapper">
+  <div ref="wrapper">
     <div class="content">
       <slot></slot>
     </div>
@@ -35,11 +35,9 @@
       })
 
       // 2.监听滚动位置
-      if (this.probeType === 2 || this.probeType === 3) {
-        this.scroll.on('scroll', position => {
-          this.$emit('scroll', position)
-        })
-      }
+      this.scroll.on('scroll', position => {
+        this.$emit('scroll', position)
+      })
 
       // 3.监听上拉事件
       if (this.pullUpLoad) {

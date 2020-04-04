@@ -34,13 +34,13 @@
 
   import NavBar from 'components/common/navbar/NavBar'
   import Scroll from 'components/common/scroll/Scroll'
-  import BackTop from 'components/common/backTop/BackTop'
 
   import TabControl from 'components/content/tabControl/TabControl'
   import GoodsList from 'components/content/goods/GoodsList'
 
   import { getHomeMultidata, getHomeGoods } from 'network/home'
   import { debounce } from 'common/utils'
+  import { itemListenerMixin, backTopMixin } from 'common/mixin'
 
   export default {
     name: 'Home',
@@ -51,11 +51,11 @@
 
       NavBar,
       Scroll,
-      BackTop,
 
       TabControl,
       GoodsList
     },
+    mixins: [itemListenerMixin, backTopMixin],
     data() {
       return {
         banners: [],
@@ -66,7 +66,6 @@
           sell: { page: 0, list: [] }
         },
         currentType: 'pop',
-        isShowBackTop: false,
         tabOffsetTop: 0,
         isTabFixed: false,
         saveY: 0
@@ -83,6 +82,7 @@
     },
     deactivated() {
       this.saveY = this.$refs.scroll.getScrollY()
+      this.$bus.$off('itemImageLoad', this.itemImageListener)
     },
     created() {
       this.getHomeMultidata()
@@ -91,18 +91,11 @@
       this.getHomeGoods('new')
       this.getHomeGoods('sell')
     },
-    mounted() {
-      // 防抖函数，减少执行次数
-      const refresh = debounce(this.$refs.scroll.refresh, 200)
-      // 监听item中图片是否加载完成， 解决下拉不动的bug
-      this.$bus.$on('itemImageLoad', () => {
-        refresh()
-      })
-    },
+    mounted() {},
     methods: {
       /*
-              事件监听相关
-          */
+                    事件监听相关
+                */
       tabClick(key) {
         switch (key) {
           case 0:
@@ -120,14 +113,11 @@
         this.$refs.tabControl1.currentKey = key
         this.$refs.tabControl2.currentKey = key
       },
-      backClick() {
-        this.$refs.scroll.scrollTo(0, 0)
-      },
       contentScroll(position) {
-        this.isShowBackTop = (-position.y) > 1000
+        this.listenShowBackTop(position)
 
         // tabControl是否吸顶
-        this.isTabFixed = (-position.y) > this.tabOffsetTop
+        this.isTabFixed = -position.y > this.tabOffsetTop
       },
       loadMore() {
         this.getHomeGoods(this.currentType)
